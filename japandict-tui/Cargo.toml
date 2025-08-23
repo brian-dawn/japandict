@@ -1,0 +1,16 @@
+[package]
+name = "japandict-tui"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "japandict"
+path = "src/main.rs"
+
+[dependencies]
+japandict-core = { path = "../japandict-core" }
+dictionary-data = { workspace = true }
+clap = { version = "4.4", features = ["derive"] }
+rustyline = "14.0"
+crossterm = "0.27"
+ratatui = "0.27"

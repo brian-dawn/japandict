@@ -3,16 +3,16 @@
 [web.app]
 
 # HTML title tag content
-title = "japandict"
+title = "Japanese Dictionary - JMDict Web App"
 
 # include `assets` in web platform
 [web.resource]
 
 # Additional CSS style files
-style = []
+style = ["https://cdn.tailwindcss.com"]
 
-# Additional JavaScript files
-script = []
+# Additional JavaScript files  
+script = ["https://cdn.tailwindcss.com"]
 
 [web.resource.dev]
 

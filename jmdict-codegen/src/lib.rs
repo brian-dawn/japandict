@@ -1,0 +1,1 @@
+// This crate only generates data, no library code

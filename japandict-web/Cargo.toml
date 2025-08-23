@@ -1,0 +1,13 @@
+[package]
+name = "japandict-web"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+japandict-core = { path = "../japandict-core" }
+dictionary-data = { workspace = true }
+dioxus = "0.5"
+dioxus-web = "0.5"
+dioxus-router = "0.5"
+wasm-logger = "0.2"
+console_error_panic_hook = "0.1"

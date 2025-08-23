@@ -1,0 +1,119 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: wasm32-unknown-unknown
+        
+    - name: Install wasm-bindgen-cli
+      run: cargo install wasm-bindgen-cli
+      
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+          jmdict-codegen/target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        
+    - name: Generate dictionary data (web-optimized)
+      run: make codegen-web
+        
+    - name: Build WASM
+      run: cargo build --release --target wasm32-unknown-unknown -p japandict-web
+      
+    - name: Generate bindings
+      run: |
+        mkdir -p dist
+        wasm-bindgen --out-dir dist --target web --no-typescript target/wasm32-unknown-unknown/release/japandict_web.wasm
+        
+    - name: Create index.html
+      run: |
+        cat > dist/index.html << 'EOF'
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Japanese Dictionary - JMDict Web App</title>
+            <meta content="text/html;charset=utf-8" http-equiv="Content-Type" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <meta charset="UTF-8" />
+            <script src="https://cdn.tailwindcss.com"></script>
+            <style>
+                body { margin: 0; padding: 0; }
+                .loading { 
+                    display: flex; 
+                    justify-content: center; 
+                    align-items: center; 
+                    height: 100vh; 
+                    font-family: -apple-system, sans-serif;
+                    color: #666;
+                }
+            </style>
+        </head>
+        <body>
+            <div id="main">
+                <div class="loading">Loading Japanese Dictionary...</div>
+            </div>
+            <script type="module">
+                import init, { main } from './japandict_web.js';
+                
+                async function run() {
+                    try {
+                        console.time('Dictionary Load');
+                        await init();
+                        console.time('Index Building');
+                        main();
+                        console.timeEnd('Index Building');
+                        console.timeEnd('Dictionary Load');
+                    } catch (error) {
+                        console.error('Failed to load:', error);
+                        document.querySelector('#main').innerHTML = 
+                            '<div class="loading" style="color: red;">Error loading dictionary: ' + error.message + '</div>';
+                    }
+                }
+                
+                run();
+            </script>
+        </body>
+        </html>
+        EOF
+        
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: dist
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4

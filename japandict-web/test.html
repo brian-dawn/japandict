@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Japanese Dictionary Test</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; margin: 2rem; }
+        #app { max-width: 800px; margin: 0 auto; }
+        .loading { text-align: center; color: #666; }
+        .error { color: red; background: #ffeee; padding: 1rem; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="loading">Loading Japanese Dictionary...</div>
+    </div>
+
+    <script type="module">
+        import init, { main } from './target/wasm32-unknown-unknown/release/japandict_web.js';
+        
+        async function run() {
+            try {
+                console.time('WASM Load');
+                await init();
+                console.timeEnd('WASM Load');
+                
+                console.time('Index Building');
+                main();
+                console.timeEnd('Index Building');
+                
+                document.querySelector('.loading').textContent = 'Dictionary ready!';
+            } catch (error) {
+                console.error('Failed to load:', error);
+                document.querySelector('#app').innerHTML = 
+                    '<div class="error">Error loading dictionary: ' + error.message + '</div>';
+            }
+        }
+        
+        run();
+    </script>
+</body>
+</html>
