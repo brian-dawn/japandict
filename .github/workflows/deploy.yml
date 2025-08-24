@@ -39,6 +39,12 @@ jobs:
           jmdict-codegen/target
         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
         
+    - name: Initialize dictionary data template
+      run: |
+        if [ ! -f dictionary-data/src/lib.rs ]; then
+          cp dictionary-data/src/lib.rs.template dictionary-data/src/lib.rs
+        fi
+        
     - name: Generate dictionary data (web-optimized)
       run: make codegen-web
         

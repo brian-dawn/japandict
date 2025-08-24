@@ -15,14 +15,14 @@ fetch-jmdict:
 		echo "JMDict data already exists"; \
 	fi
 
-codegen: fetch-jmdict
+codegen: fetch-jmdict init-dict-template
 	cd jmdict-codegen && cargo run && cargo clean
 	@echo "Dictionary data generated successfully"
 
-codegen-test: fetch-jmdict
+codegen-test: fetch-jmdict init-dict-template
 	cd jmdict-codegen && cargo run -- --limit 1000 && cargo clean
 
-codegen-web: fetch-jmdict
+codegen-web: fetch-jmdict init-dict-template
 	cd jmdict-codegen && CARGO_CFG_TARGET_ARCH=wasm32 cargo run && cargo clean
 	@echo "Web-optimized dictionary data generated successfully"
 
@@ -30,10 +30,17 @@ codegen-web: fetch-jmdict
 dict-data:
 	cd dictionary-data && cargo build --profile dict && cargo clean
 
-# Check and generate dictionary data if needed
-check-dict-data:
+# Initialize dictionary data template if needed
+init-dict-template:
 	@if [ ! -f dictionary-data/src/lib.rs ]; then \
-		echo "Dictionary data not found, generating..."; \
+		echo "Initializing dictionary data template..."; \
+		cp dictionary-data/src/lib.rs.template dictionary-data/src/lib.rs; \
+	fi
+
+# Check and generate dictionary data if needed
+check-dict-data: init-dict-template
+	@if grep -q "WORD_COUNT: usize = 0" dictionary-data/src/lib.rs 2>/dev/null; then \
+		echo "Dictionary data not generated, generating..."; \
 		$(MAKE) codegen; \
 	fi
 
@@ -74,4 +81,4 @@ clean-data:
 	rm -f dictionary-data/src/lib.rs
 	@echo "Dictionary data removed. Run 'make codegen' to regenerate."
 
-.PHONY: help fetch-jmdict codegen codegen-web codegen-test tui web web-build clean clean-data check-dict-data dict-data
+.PHONY: help fetch-jmdict codegen codegen-web codegen-test tui web web-build clean clean-data check-dict-data dict-data init-dict-template
