@@ -54,7 +54,7 @@ jobs:
     - name: Generate bindings
       run: |
         mkdir -p dist
-        wasm-bindgen --out-dir dist --target web --no-typescript target/wasm32-unknown-unknown/release/japandict_web.wasm
+        wasm-bindgen --out-dir dist --target web --no-typescript target/wasm32-unknown-unknown/release/japandict-web.wasm
         
     - name: Create index.html
       run: |
