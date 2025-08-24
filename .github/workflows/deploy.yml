@@ -84,7 +84,7 @@ jobs:
                 <div class="loading">Loading Japanese Dictionary...</div>
             </div>
             <script type="module">
-                import init, { main } from './japandict_web.js';
+                import init, { main } from './japandict-web.js';
                 
                 async function run() {
                     try {
